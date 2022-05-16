@@ -9,9 +9,10 @@ import StyledComponents from "./StyledComponents"
 import CommonButton from "../../../Shared/CommonButton"
 import AddIcon from "@mui/icons-material/Add"
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import { contact as contactType } from "../../../../reducer/contacts"
 
 interface ContactListProps {
-  list?: Array<number>
+  list?: Array<contactType>
 }
 
 const ContactList = ({
@@ -24,8 +25,8 @@ const ContactList = ({
 
   return (
     <List disablePadding >
-      {list.map((item : number) => (
-        <StyledListItem key={item + 3}>
+      {list.map((item : contactType) => (
+        <StyledListItem key={item?.id}>
           <Stack 
             direction="row"
             justifyContent="space-between"
@@ -33,19 +34,21 @@ const ContactList = ({
           >
             <Stack direction="row">
               <StyledCheckbox name="test" />
-              <ContactCard />
+              <ContactCard contactInfo={item} />
             </Stack>
             <Stack 
               direction="row"
               alignItems="center"
               spacing={2}
             >
-              <StyledChip 
+              {item.tags.length !== 0 && (
+                <StyledChip 
                 label="Tags"
                 color="primary"
                 onDelete={() => console.log("pressed!!!")}
                 deleteIcon={<HighlightOffIcon color="warning" />}
                 />
+              )}
               <CommonButton
                 variant="contained"
                 size='small'

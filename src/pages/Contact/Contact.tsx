@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import MuiAppBar from '@mui/material/AppBar';
@@ -15,11 +15,49 @@ import Sidebar from '../../Components/Contact/Sidebar/Sidebar';
 import useStyledComponents from '../../hooks/common/useStyledComponents';
 import CommonButton from '../../Components/Shared/CommonButton';
 import Main from '../../Components/Contact/Main';
+import { GlobalContext } from '../../App';
+import agent from '../../agent';
+import { SET_CONTACT_LIST, SET_TAGS_LIST } from '../../actions/contacts';
 
+const types: any = {
+  "0" : {
+    type: SET_CONTACT_LIST,
+    key: "contacts"
+  },
+  "1": {
+    type: SET_TAGS_LIST,
+    key: "tags"
+  }
+}
 const Contact = () => {
   const theme = useTheme();
   const [open, setOpen] = useState(true);
-  
+  const [isDataPreparing, setIsDataPreparing] = useState(false);
+  const { state: { auth, contacts }, dispatch, errorHandler } = useContext(GlobalContext);
+
+  const updateContactList = () => 
+    Promise.all([
+      agent.Contacts.getContactList(),
+      agent.Contacts.getListOfTags()
+    ]).then(response => {
+      console.log("response --> ", response);
+      response.forEach((response, index) => {
+        dispatch({
+          type: types[index].type,
+          payload: response[types[index].key]
+        })
+      })
+      setIsDataPreparing(false)
+    }).catch(error => errorHandler(error)) 
+
+
+  useEffect(() => {
+    if(auth.accessToken && !contacts.contactList.length){
+      setIsDataPreparing(true)      
+      updateContactList();  
+    }
+  }, [auth.accessToken, contacts.contactList])
+
   const classes = useStyles({
     color: theme.palette.grey[50],
     open
@@ -93,7 +131,13 @@ const Contact = () => {
       </StyledDrawer>
       <StyledBox component="main" >
         <StyledDrawerHeader />
-        <Main />
+        {isDataPreparing ? (
+          <Typography variant="h6" color={theme.palette.secondary.light}>Preparing Contacts List...</Typography>
+          ) : !contacts.contactList.length ? (
+            <Typography variant="h6" color={theme.palette.secondary.light}>No Contact List to show...</Typography>
+          ) : (
+          <Main />
+        )}
       </StyledBox>
     </Box>
   );

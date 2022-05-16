@@ -40,6 +40,9 @@ const globalTheme = createTheme({
       main: grey[100],
       light: "#fff",
       dark: grey[800]
+    },
+    background: {
+      default: grey[50]
     }
   },
   typography: {
@@ -51,8 +54,9 @@ const globalTheme = createTheme({
         "@font-face": {
           fontFamily: "Nunito, sans-serif",
           src: `url(https://fonts.googleapis.com/css2?family=Macondo&family=Nunito:wght@400;700&display=swap')`
-        }
-      }
+        },
+        background: grey[100]
+      },
     },
   },
 })

@@ -7,23 +7,55 @@ import DeleteIcon from "@mui/icons-material/Delete"
 import CheckCircle from "@mui/icons-material/CheckCircle"
 import StyledComponents from './StyledComponents'
 import useStyledComponents from '../../../../hooks/common/useStyledComponents'
+import { useContext } from 'react'
+import { GlobalContext } from '../../../../App'
+import { SET_FILTER_KEYS } from '../../../../actions/contacts'
 
-const TagsFilter = () => {
+const TagsFilter = ({
+  type
+} : {
+  type: string
+}) => {
 
+  const { state: { contacts }, dispatch} = useContext(GlobalContext)
   const { getStyledComponent } = useStyledComponents(StyledComponents)
   const StyledListItem = getStyledComponent(MuiListItem, "MuiListItem")
 
+  const isTagChecked = (name: string) => {
+    const { filteredKeys } : { filteredKeys : any } = contacts
+    const key: Array<string> = filteredKeys[type]
+    return key.includes(name)
+  }
+
+  const handleListSelection = (tag: any) => {
+    const { filteredKeys } : { filteredKeys: any} = contacts
+    const isAlreadyInTheList = filteredKeys[type].includes(tag.name)
+    const updatedFilterdKeys = isAlreadyInTheList ? filteredKeys[type].filter(((item: string) => item !== tag.name)) : [
+      ...filteredKeys[type],
+      tag.name
+    ]
+
+    dispatch({
+      type: SET_FILTER_KEYS,
+      payload: {
+        key: type,
+        value: updatedFilterdKeys
+      }
+    })
+  }
+
   return (
     <List dense disablePadding>
-      {Array.from(Array(5).keys()).map((number) => (
+      {contacts.tags.map((tag,index) => (
         <StyledListItem
-          key={number}
-          number={number}
-          secondaryAction={ number % 2 !== 0 && (
+          key={tag.name}
+          number={index}
+          onClick={() => handleListSelection(tag)}
+          secondaryAction={isTagChecked(tag.name) && (
             <Stack spacing={0.5} direction="row">
-              <IconButton edge="end" aria-label="delete" color='error'>
+              {/* <IconButton edge="end" aria-label="delete" color='error'>
                 <DeleteIcon />
-              </IconButton>
+              </IconButton> */}
               <IconButton edge="end" aria-label="delete" color='primary'>
                 <CheckCircle />
               </IconButton>
@@ -31,7 +63,7 @@ const TagsFilter = () => {
           )}
         >
           <ListItemText
-            primary="Greetings"
+            primary={tag.name}
           />
         </StyledListItem>
       ))}    
