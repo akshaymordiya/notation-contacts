@@ -1,54 +1,120 @@
-import { Fragment, useContext } from "react"
+import { Fragment, memo, useCallback, useEffect, useState } from "react"
 import Message from "./Message"
 import TagsFilter from "./TagsFilter"
 import Button from "@mui/material/Button"
 import SidebarBoxWrapper from "./SidebarBoxWrapper"
 import StyledComponents from "./StyledComponents"
 import useStyledComponents from "../../../hooks/common/useStyledComponents"
-import { GlobalContext } from "../../../App"
-import { SET_FILTER_LIST } from "../../../actions/contacts"
+import { SET_FILTER_LIST, SET_TAGS_LIST } from "../../../actions/contacts"
+import useContextReader from "../../../hooks/common/useContextReader"
+import agent from "../../../agent"
+import { isEqual } from "../../../utils/helper"
 
-const Sidebar = () => {
+const Sidebar = ({
+  open
+} : {
+  open: boolean
+}) => {
+  const {
+    filteredKeys,
+    contactList,
+    tags,
+    dispatch
+  } = useContextReader();
 
-  const { state: { contacts }, dispatch} = useContext(GlobalContext);
+  useEffect(() => {
+    if(!tags.length){
+      agent.Contacts.getListOfTags().then(response => {
+        dispatch(
+          SET_TAGS_LIST,
+          response?.tags
+        )
+      })
+    }
+  }, []);
+
   const { getStyledComponent } = useStyledComponents(StyledComponents);
   const StyledButton = getStyledComponent(Button, "MuiButton");
   
-  const handleApplyFilters = () => {
-    const { filteredKeys, contactList } = contacts
+  const handleApplyFilters = useCallback(() => {
+    const isTagsFilterable = (tags: { name : string, value?: string}[]) => {
+      let result = true;
 
-    const filteredList = contactList.filter(contact => {
-      return contact.tags.some((tag) => filteredKeys.includeTags?.includes(tag.name)) &&
-            contact.tags.some((tag) => !filteredKeys.excludeTags?.includes(tag?.name))
-    })
+      if(!filteredKeys.includeTags?.length && !filteredKeys.excludeTags?.iength){
+        return result;
+      }
+
+      const foundedIncludeTags :Array<string> = [];
+      const mappedTags :Array<string> = tags.map(tag => tag.name)
+      tags.forEach(tag => {
+        if(filteredKeys.includeTags?.includes(tag.name)){
+          result = true
+          foundedIncludeTags.push(tag.name)
+        }else {
+          result = false
+        }
+      })
+
+      if(!filteredKeys.excludeTags?.length){
+        return result;
+      }else{
+        filteredKeys.excludeTags.forEach((tag: string) => {
+          if(foundedIncludeTags.includes(tag) || mappedTags.includes(tag)){
+            result = false;
+          }
+        })
+      }
+      return result;
+    }
+
+    const filteredList = contactList.filter((contact : any) => {
+      const result = isTagsFilterable(contact.tags)      
+      return result
+    })    
     
-    dispatch({
-      type: SET_FILTER_LIST,
-      payload: filteredList
-    })
+    dispatch(
+      SET_FILTER_LIST,
+      filteredList
+    )
+  }, [contactList])
+
+  if(!open){
+    return <span></span>;
   }
 
   return (
-    <Fragment>
+    <Fragment key="sidebar-fragement">
       <SidebarBoxWrapper 
         tagTitle="Include Tags"
       >
-        <TagsFilter type="includeTags"/>
+        <TagsFilter
+          key="include-tags"
+          type="includeTags"
+          tags={tags}
+        />
       </SidebarBoxWrapper>
       <SidebarBoxWrapper 
         tagTitle="Excluded Tags"
       >
-        <TagsFilter type="excludeTags" />
+        <TagsFilter
+          key="exclude-tags"
+          type="excludeTags"
+          tags={tags}
+        />
       </SidebarBoxWrapper>
       <SidebarBoxWrapper
         tagTitle="Message Sent"
       >
-        <Message />
+        <Message
+          key="message-sent"
+        />
       </SidebarBoxWrapper>
       <SidebarBoxWrapper
         tagTitle="Message Received"
       >
-        <Message />
+        <Message 
+          key="message-received"
+        />
       </SidebarBoxWrapper>
       <StyledButton
         variant="contained"
@@ -58,4 +124,4 @@ const Sidebar = () => {
   )
 }
 
-export default Sidebar
+export default memo(Sidebar, isEqual)

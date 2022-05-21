@@ -1,5 +1,5 @@
 import { createTheme } from "@mui/material/styles";
-import { blueGrey, grey } from "@mui/material/colors"
+import { blueGrey, grey, teal } from "@mui/material/colors"
 
 declare module '@mui/material/styles' {
   interface Palette {
@@ -27,9 +27,9 @@ export const MuiScrollBarStyles = {
 const globalTheme = createTheme({
   palette: {
     primary: {
-      main: "#4db6ac",
-      light: "#b2dfdb",
-      dark: "#00a152",
+      main: teal[300],
+      light: teal[100],
+      dark: teal[500],
     },
     secondary: {
       main: blueGrey[900],

@@ -1,3 +1,4 @@
+import { memo, useContext } from 'react'
 import Stack from '@mui/material/Stack'
 import List from '@mui/material/List'
 import MuiListItem from '@mui/material/ListItem'
@@ -7,60 +8,78 @@ import DeleteIcon from "@mui/icons-material/Delete"
 import CheckCircle from "@mui/icons-material/CheckCircle"
 import StyledComponents from './StyledComponents'
 import useStyledComponents from '../../../../hooks/common/useStyledComponents'
-import { useContext } from 'react'
-import { GlobalContext } from '../../../../App'
 import { SET_FILTER_KEYS } from '../../../../actions/contacts'
+import useContextReader from '../../../../hooks/common/useContextReader'
+import { isEqual } from '../../../../utils/helper'
 
 const TagsFilter = ({
-  type
+  type,
+  tags = []
 } : {
-  type: string
+  type: string,
+  tags: {
+    name: string,
+    value?: string
+  }[]
 }) => {
 
-  const { state: { contacts }, dispatch} = useContext(GlobalContext)
+  const {
+    filteredKeys,
+    dispatch
+  } : {
+    filteredKeys: any,
+    dispatch: Function
+  } = useContextReader();
   const { getStyledComponent } = useStyledComponents(StyledComponents)
   const StyledListItem = getStyledComponent(MuiListItem, "MuiListItem")
 
   const isTagChecked = (name: string) => {
-    const { filteredKeys } : { filteredKeys : any } = contacts
     const key: Array<string> = filteredKeys[type]
     return key.includes(name)
   }
 
-  const handleListSelection = (tag: any) => {
-    const { filteredKeys } : { filteredKeys: any} = contacts
+  const handleListSelection = (tag: { name: string, value?: string }) => {
     const isAlreadyInTheList = filteredKeys[type].includes(tag.name)
     const updatedFilterdKeys = isAlreadyInTheList ? filteredKeys[type].filter(((item: string) => item !== tag.name)) : [
       ...filteredKeys[type],
       tag.name
     ]
 
-    dispatch({
-      type: SET_FILTER_KEYS,
-      payload: {
+    dispatch(
+      SET_FILTER_KEYS,
+      {
         key: type,
         value: updatedFilterdKeys
       }
-    })
+    )
+  }
+
+
+  const displayedCheckMark = (tag : { name: string, value?: string}) => {
+    if(isTagChecked(tag.name)){
+      return (
+        <Stack spacing={0.5} direction="row">
+            {/* <IconButton edge="end" aria-label="delete" color='error'>
+              <DeleteIcon />
+            </IconButton> */}
+          <IconButton edge="end" aria-label="delete" color='primary'>
+            <CheckCircle />
+          </IconButton>
+        </Stack>
+      )
+    }
+
+    return <span></span>
   }
 
   return (
     <List dense disablePadding>
-      {contacts.tags.map((tag,index) => (
+      {tags.map((tag,index) => (
         <StyledListItem
           key={tag.name}
           number={index}
           onClick={() => handleListSelection(tag)}
-          secondaryAction={isTagChecked(tag.name) && (
-            <Stack spacing={0.5} direction="row">
-              {/* <IconButton edge="end" aria-label="delete" color='error'>
-                <DeleteIcon />
-              </IconButton> */}
-              <IconButton edge="end" aria-label="delete" color='primary'>
-                <CheckCircle />
-              </IconButton>
-            </Stack>
-          )}
+          secondaryAction={displayedCheckMark(tag)}
         >
           <ListItemText
             primary={tag.name}
@@ -71,4 +90,4 @@ const TagsFilter = ({
   )
 }
 
-export default TagsFilter
+export default memo(TagsFilter, isEqual)

@@ -6,7 +6,7 @@ import StyledComponents from "./StyledComponents";
 
 interface SidebarBoxWrapperProps {
   tagTitle: string;
-  children: ReactNode;
+  children: any;
 }
 
 const SidebarBoxWrapper = ({

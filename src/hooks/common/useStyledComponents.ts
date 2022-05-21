@@ -1,8 +1,11 @@
+import { Component, memo, useCallback } from "react"
+import { isEqual } from "../../utils/helper";
 
 const useStyledComponents = (module: any) => {
-  const getStyledComponent = (Component: any, key: string) => {
-    return module[key](Component);
-  }
+
+  const getStyledComponent = useCallback((Component: any, key: string) => {
+    return memo(module[key](Component), isEqual);
+  }, [Component])
 
   return {
     getStyledComponent

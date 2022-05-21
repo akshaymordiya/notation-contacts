@@ -1,4 +1,4 @@
-import { createContext, useReducer } from "react";
+import { createContext, useMemo, useReducer } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { SET_AUTH, SET_REFRESH_TOKEN } from "./actions/auth";
 import defaultConfigurations from "./config/auth";
@@ -28,8 +28,9 @@ function App() {
     })
   }
 
-  const errorHandler = (error: any) => {
-    if(error?.response?.data?.statusCode === 401){
+  const errorHandler = (error: any) => {    
+    const err = JSON.parse(error);    
+    if(err?.code === 401 && err?.error === "jwt expired"){      
       dispatch({
         type: SET_AUTH,
         payload: ""
@@ -40,13 +41,14 @@ function App() {
     console.error(error)
   }
 
-  const contextValue: context = {
-    state,
-    dispatch,
-    errorHandler
-  }
-  console.log("state --> ", state);
-  
+  const contextValue: context = useMemo(() => {
+    return {
+      state,
+      dispatch,
+      errorHandler
+    }
+  }, [state, dispatch, errorHandler]);
+
   return (
     <GlobalContext.Provider value={contextValue}>
       <Router>

@@ -1,19 +1,20 @@
+import { memo } from "react";
 import { styled, Theme, CSSObject } from "@mui/material/styles";
-import InputBase, { InputBaseProps as MuiInputBaseProps } from "@mui/material/InputBase";
+import Input, { InputProps as MuiInputProps } from "@mui/material/Input";
 
-interface InputBaseProps extends MuiInputBaseProps {
+interface InputProps extends MuiInputProps {
   customMargin?: string,
   padding?: string,
   applyFullWidth?: boolean
 }
 
-interface StyleInput extends InputBaseProps {
+interface StyleInput extends InputProps {
   theme: Theme,
 }
 
-const StyledInput = styled(InputBase, {
+const StyledInput = styled(Input, {
   shouldForwardProp: (prop : any) => !["customMargin", "padding", "applyFullWidth"].includes(prop)
-})<InputBaseProps>(({ theme, customMargin, padding, applyFullWidth } : StyleInput ) : CSSObject => 
+})<InputProps>(({ theme, customMargin, padding, applyFullWidth } : StyleInput ) : CSSObject => 
   ({
     borderRadius: '1rem',
     position: 'relative',
@@ -35,12 +36,13 @@ const StyledInput = styled(InputBase, {
     },
 }))
 
-const Input = (props : InputBaseProps) => {
+const CustomInput = (props : InputProps) => {
   return (
     <StyledInput
+      disableUnderline
       {...props}
     />
   )
 }
 
-export default Input
+export default memo(CustomInput)
